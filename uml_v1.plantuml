@@ -1,0 +1,151 @@
+@startuml UML_v1
+    hide circle
+
+    enum CatégorieVéhicule{
+        citadine
+        berline petite
+        berline moyenne
+        berline grande
+        4X4 
+        SUV
+        break
+        pickup 
+        utilitaire
+    }
+
+    class Modèle{
+        nom: string {key}
+        'catégorie: CatégorieVéhicule NOT NULL
+        nbPortes: 3 | 5
+    }
+
+    class Véhicule{
+        immat: string {key}
+        marque: string
+        couleur: string
+        tarif: int
+        km: int
+    }
+
+    class Option{
+        nom: string {key}
+    }
+
+    class TypeCarburant{
+        nom: string {key}
+    }
+
+    abstract class Client{
+        idClient: int {key}
+    }
+
+    class Facturation{
+        idFact: int {key}
+        Date: date
+        moyenReglement: CB|chèque|espèces|virement
+        montant: float
+    }
+    note bottom: date NULL devient remplie \nlorsque le paiement est réalisé
+
+    class SociétéEntretien{
+        idSociété: {key}
+        nom: string
+    }
+
+    class ClientProfessionnel{
+        idEntreprise: int {key}
+        infosEntreprise: string
+    }
+    note bottom: plusieurs locations à la fois
+
+    class ClientParticulier{
+        numéroPermis: string {key}
+        nom: string
+        prénom: string
+        adresse: string
+        numéroTel: string
+        getAge(): int
+    }
+    note bottom: âge minimum : 21 ans\n1 location à la fois
+
+    class ContratLocation{
+        idContrat: int {key}
+        dateReservation: date
+        heureDebut: heure
+        heureFin: heure
+        DateDébutLocation: jour
+        DateFinLocation: jour
+        kilomerage: int
+        getSeuil()
+        getPeriode()
+    }
+    'note left: On garde un historique des contrat\n il faut que le contrat précédent \nsoit terminé avant de louer à nouveau \nun même véhicule\nun unique contrat par conducteur si c'est le \n client pro qui engage la démarche\nun client part peut signer un seul contrat à la fois
+
+    abstract class Employé{
+        numSécuSociale: int {key}
+        nom: string
+        prénom: string
+        dateNaissance: date
+    }
+
+    class Agence{
+
+        Nom: Varchar{key}    
+
+    }
+
+    class Entretien{
+
+        numeroEntretien: int{key}
+        date: date
+
+    }
+
+    note right: XOR entre SociétéEntretien et AgentTechique
+
+    class Conducteur{
+        numéroPermis: string {key}
+        nom: string
+        prénom: string
+        adresse: string
+        numéroTel: string
+        getAge(): int   
+    }
+    note top: âge minimum : 21 ans
+
+
+    class ContratProfessionnel{}
+
+    class ContratParticulier{}
+
+    class AgentCommercial{}
+    
+    class AgentTechnique{}
+    note right: le véhicule est contrôlé après la fin de la location
+
+    Client <|-down- ClientProfessionnel
+    Client <|-down- ClientParticulier
+    Facturation "1.1" -up- "1..n" ContratLocation: < compose
+    'ContratLocation "0..n" -down- "1..1" Client: signe\t\t
+    Véhicule "1..1" -down- "0..n" ContratLocation: assigne <
+    '(Véhicule, Client) .. ContratLocation
+    Modèle *-down- "0..n" Véhicule: \t
+    Employé <|-up- AgentCommercial
+    Employé <|-up- AgentTechnique
+    Véhicule "0..n" -up- "0..n" Option: > a\t
+    Véhicule "0..n" -up- "1..1" TypeCarburant: > a
+    AgentCommercial "1..1" -up- "0..n" ContratLocation: valide >
+    AgentCommercial "1..1" -down- "0..n" Facturation: édite >
+    Agence "1" -- "0..*" Employé : emploie >
+    Agence o-- "0..*" Véhicule
+    Agence "0..1" -- "0..*" SociétéEntretien : emploie >
+    SociétéEntretien "0..1" -- "0..*" Entretien : réalise >
+    AgentTechnique "0..1" -- "0..*" Entretien : réalise >
+    Entretien "1" -- "1" ContratLocation : est associé >
+    ClientProfessionnel "1" -down- "1..*" Conducteur : fournit >
+    ContratLocation <|-down- ContratParticulier
+    ContratLocation <|-right- ContratProfessionnel
+    ClientParticulier "1" -down- "0..*" ContratParticulier : a >
+    Conducteur "1" -- "0..*" ContratProfessionnel : a >
+    Modèle "0..n" -o CatégorieVéhicule : \t
+@enduml
